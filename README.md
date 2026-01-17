@@ -114,6 +114,20 @@ This project introduces an **AI-driven, explainable, and scalable allocation pla
 | Charts | Chart.js / Recharts |
 
 ---
+## 🤝 Connect With Me  
 
-# 🏗️ SYSTEM ARCHITECTURE
+<p align="center">
+  <a href="https://www.linkedin.com/in/ajinkya842004/" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" />
+  </a>
+  <a href="mailto:dhumalajinkya2004@gmail.com">
+    <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
+  <a href="https://github.com/Ajinkyaa2004" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" />
+  </a>
+  <a href="https://itsajinkya.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/Portfolio-4CAF50?style=for-the-badge&logo=about.me&logoColor=white" />
+  </a>
+</p>
 
