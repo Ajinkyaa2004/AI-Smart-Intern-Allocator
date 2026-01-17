@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-outfit);
+
+  /* STRICT COLOR PALETTE - Cream White, Sunset Orange, Black/Gray ONLY */
+  --color-background: #FDFBF7;
+  /* Cream White */
+  --color-foreground: #1a1a1a;
+  /* Near Black */
+  --color-primary: #FD5E53;
+  /* Sunset Orange */
+  --color-secondary: #FFF5E6;
+  /* Light Cream */
+  --color-accent: #FD5E53;
+  /* Sunset Orange */
+  --color-muted: #666666;
+  /* Medium Gray */
+  --color-border: #E8E0D5;
+  /* Cream Border */
+
+  /* Remove ALL other colors - green, blue, purple, etc */
+}
+
+:root {
+  /* Cream White & Sunset Orange Theme - STRICT */
+  --background: #FDFBF7;
+  /* Cream White Background */
+  --foreground: #1a1a1a;
+  /* Black Text */
+  --primary: #FD5E53;
+  /* Sunset Orange - Primary Actions */
+  --secondary: #FFF5E6;
+  /* Light Cream - Cards/Sections */
+  --accent: #FD5E53;
+  /* Sunset Orange Accent */
+  --muted: #666666;
+  /* Gray - Secondary Text */
+  --border: #E8E0D5;
+  /* Cream Border */
+
+  /* Status colors using ONLY our palette */
+  --success: #FD5E53;
+  /* Use orange for success */
+  --warning: #FD5E53;
+  /* Use orange for warning */
+  --error: #1a1a1a;
+  /* Use black for error */
+  --info: #666666;
+  /* Use gray for info */
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Override any green/blue/purple that might slip through */
+* {
+  --tw-ring-color: var(--primary) !important;
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+  }
+
+  /* Utility classes for strict color palette */
+  .bg-cream {
+    background-color: #FDFBF7;
+  }
+
+  .bg-cream-light {
+    background-color: #FFF5E6;
+  }
+
+  .bg-orange {
+    background-color: #FD5E53;
+  }
+
+  .text-black {
+    color: #1a1a1a;
+  }
+
+  .text-gray {
+    color: #666666;
+  }
+
+  .text-orange {
+    color: #FD5E53;
+  }
+
+  .border-cream {
+    border-color: #E8E0D5;
+  }
+}
