@@ -9,27 +9,80 @@ export default function StudentMatches() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // In a real app, we would fetch from /api/student/allocation
-        setTimeout(() => {
-            setLoading(false);
-            // Mock data for visualization - uncomment to test
-            /*
-            setAllocation({
-                internship: { title: 'Product Manager Intern', org: { name: 'Ministry of Electronics' }, location: 'New Delhi', stipend: 25000 },
-                score: 0.92,
-                breakdown: { skillMatch: 0.9, locationMatch: 1.0, gpaMatch: 0.8 },
-                status: 'PROPOSED'
-            });
-            */
-        }, 1000);
+        fetchAllocation();
     }, []);
 
-    const handleAccept = () => {
-        toast.success("Offer Accepted! Congratulations.");
+    const fetchAllocation = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+            
+            // Fetch student profile to get student ID
+            const studentRes = await fetch('/api/v1/student/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!studentRes.ok) {
+                throw new Error('Failed to fetch student profile');
+            }
+
+            const studentData = await studentRes.json();
+            
+            // Fetch allocations for this student
+            const allocRes = await fetch(`/api/v1/allocation/student/${studentData._id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (allocRes.ok) {
+                const allocData = await allocRes.json();
+                if (allocData && allocData.length > 0) {
+                    setAllocation(allocData[0]); // Get the first (most recent) allocation
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching allocation:', error);
+            toast.error('Failed to load allocation data');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleReject = () => {
-        toast.error("Offer Rejected.");
+    const handleAccept = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/v1/allocation/${allocation._id}/accept`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (res.ok) {
+                toast.success("Offer Accepted! Congratulations.");
+                fetchAllocation(); // Refresh data
+            } else {
+                toast.error("Failed to accept offer");
+            }
+        } catch (error) {
+            toast.error("Failed to accept offer");
+        }
+    };
+
+    const handleReject = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`/api/v1/allocation/${allocation._id}/reject`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (res.ok) {
+                toast.error("Offer Rejected.");
+                fetchAllocation(); // Refresh data
+            } else {
+                toast.error("Failed to reject offer");
+            }
+        } catch (error) {
+            toast.error("Failed to reject offer");
+        }
     };
 
     if (loading) return <div className="text-primary font-medium animate-pulse">Loading allocation status...</div>;
@@ -59,17 +112,17 @@ export default function StudentMatches() {
                             <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary mb-3 border border-primary/30">
                                 {allocation.status} MATCH
                             </span>
-                            <h2 className="text-2xl font-bold text-foreground">{allocation.internship.title}</h2>
-                            <p className="text-lg text-muted font-medium">{allocation.internship.org.name}</p>
+                            <h2 className="text-2xl font-bold text-foreground">{allocation.internship?.title || 'Internship'}</h2>
+                            <p className="text-lg text-muted font-medium">{allocation.internship?.org?.name || 'Organization'}</p>
                         </div>
                         <div className="p-6 space-y-5">
                             <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                                 <span className="text-muted flex items-center gap-2"><MapPin className="h-4 w-4" /> Location</span>
-                                <span className="font-semibold text-foreground">{allocation.internship.location}</span>
+                                <span className="font-semibold text-foreground">{allocation.internship?.location || 'N/A'}</span>
                             </div>
                             <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                                 <span className="text-muted flex items-center gap-2"><Calculator className="h-4 w-4" /> Stipend</span>
-                                <span className="font-semibold text-foreground">₹{allocation.internship.stipend}/mo</span>
+                                <span className="font-semibold text-foreground">₹{allocation.internship?.stipend || 0}/mo</span>
                             </div>
 
                             <div className="pt-4 flex gap-3">
@@ -93,10 +146,10 @@ export default function StudentMatches() {
                             <div>
                                 <div className="flex justify-between text-sm mb-2">
                                     <span className="font-medium text-muted">Overall Match Score</span>
-                                    <span className="font-bold text-primary">{(allocation.score * 100).toFixed(0)}%</span>
+                                    <span className="font-bold text-primary">{((allocation.score || 0) * 100).toFixed(0)}%</span>
                                 </div>
                                 <div className="h-3 w-full bg-secondary rounded-full overflow-hidden">
-                                    <div className="h-full bg-gradient-to-r from-primary/60 to-primary" style={{ width: `${allocation.score * 100}%` }}></div>
+                                    <div className="h-full bg-gradient-to-r from-primary/60 to-primary" style={{ width: `${(allocation.score || 0) * 100}%` }}></div>
                                 </div>
                             </div>
 
@@ -106,8 +159,8 @@ export default function StudentMatches() {
                                         <BrainCircuit className="h-4 w-4 text-primary" />
                                         <div className="text-xs text-muted uppercase font-bold tracking-wider">Skill Alignment</div>
                                     </div>
-                                    <div className="font-bold text-lg text-foreground">{(allocation.breakdown.skillMatch * 100).toFixed(0)}% Match</div>
-                                    <p className="text-xs text-muted mt-1">Based on Python, AI/ML, and Project Management skills.</p>
+                                    <div className="font-bold text-lg text-foreground">{((allocation.breakdown?.skillMatch || 0) * 100).toFixed(0)}% Match</div>
+                                    <p className="text-xs text-muted mt-1">Based on your technical skills and experience.</p>
                                 </div>
 
                                 <div className="p-4 rounded-xl bg-secondary/20 border border-secondary/50">
@@ -115,8 +168,8 @@ export default function StudentMatches() {
                                         <MapPin className="h-4 w-4 text-primary" />
                                         <div className="text-xs text-muted uppercase font-bold tracking-wider">Preference</div>
                                     </div>
-                                    <div className="font-bold text-lg text-foreground">{(allocation.breakdown.locationMatch * 100).toFixed(0)}% Match</div>
-                                    <p className="text-xs text-muted mt-1">Matches your preferred location: {allocation.internship.location}</p>
+                                    <div className="font-bold text-lg text-foreground">{((allocation.breakdown?.locationMatch || 0) * 100).toFixed(0)}% Match</div>
+                                    <p className="text-xs text-muted mt-1">Matches your preferred location: {allocation.internship?.location || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>

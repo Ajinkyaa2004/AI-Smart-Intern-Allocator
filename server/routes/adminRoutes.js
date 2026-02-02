@@ -161,14 +161,28 @@ router.get('/logs', protect, authorize('ADMIN'), async (req, res) => {
 // @access  Private (ADMIN only)
 router.post('/trigger-allocation', protect, authorize('ADMIN'), async (req, res) => {
     try {
-        // This would trigger the AI allocation engine
-        // For now, return a message
+        const allocationEngine = require('../services/allocationService');
+        const batchId = `MATCH-${Date.now()}`; // Unique Batch ID
+        
+        console.log(`[Admin API] Triggering allocation batch: ${batchId}`);
+        const results = await allocationEngine.runBatchAllocation(batchId);
+        
         res.json({
-            message: 'Allocation engine triggered successfully',
-            note: 'AI matching algorithm will run in background. Check logs for progress.'
+            success: true,
+            message: `Allocation completed! ${results.matchesGenerated} matches created from ${results.candidatesProcessed} candidates.`,
+            data: {
+                batchId: results.batchId,
+                matchesGenerated: results.matchesGenerated,
+                candidatesProcessed: results.candidatesProcessed,
+                waitlistedCount: results.waitlistedCount
+            }
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('[Admin API] Allocation Error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Failed to trigger allocation' 
+        });
     }
 });
 

@@ -34,6 +34,8 @@ app.prepare().then(() => {
     server.use('/api/v1/org', require('./server/routes/orgRoutes'));
     server.use('/api/v1/admin', require('./server/routes/adminRoutes'));
     server.use('/api/v1/resume', require('./server/routes/resumeRoutes'));
+    server.use('/api/v1/ratings', require('./server/routes/ratingRoutes'));
+    server.use('/api/v1/notifications', require('./server/routes/notificationRoutes'));
 
     // Custom API Routes (Express)
     server.get('/api/health', (req, res) => {

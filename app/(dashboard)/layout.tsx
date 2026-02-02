@@ -10,8 +10,10 @@ import {
     Users,
     LayoutDashboard,
     FileText,
-    LogOut
+    LogOut,
+    Star
 } from 'lucide-react';
+import NotificationBell from '../components/NotificationBell';
 
 export default function DashboardLayout({
     children,
@@ -94,12 +96,14 @@ export default function DashboardLayout({
     const studentLinks = [
         { href: '/student/profile', label: 'My Profile', icon: <User className="w-5 h-5" /> },
         { href: '/student/matches', label: 'My Allocations', icon: <Target className="w-5 h-5" /> },
+        { href: '/student/feedback', label: 'Rate Internship', icon: <Star className="w-5 h-5" /> },
     ];
 
     const orgLinks = [
         { href: '/org/profile', label: 'Organization Profile', icon: <User className="w-5 h-5" /> },
         { href: '/org/postings', label: 'Internship Postings', icon: <ClipboardList className="w-5 h-5" /> },
         { href: '/org/candidates', label: 'Allocated Candidates', icon: <Users className="w-5 h-5" /> },
+        { href: '/org/ratings', label: 'Rate Interns', icon: <Star className="w-5 h-5" /> },
     ];
 
     const adminLinks = [
@@ -160,8 +164,11 @@ export default function DashboardLayout({
                     <h2 className="text-lg font-semibold text-foreground">
                         Welcome back, {displayName || 'User'}
                     </h2>
-                    <div className="h-8 w-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm border border-primary/20">
-                        {displayName ? displayName[0].toUpperCase() : user.email[0].toUpperCase()}
+                    <div className="flex items-center gap-4">
+                        <NotificationBell />
+                        <div className="h-8 w-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm border border-primary/20">
+                            {displayName ? displayName[0].toUpperCase() : user.email[0].toUpperCase()}
+                        </div>
                     </div>
                 </header>
                 <div className="p-8">
