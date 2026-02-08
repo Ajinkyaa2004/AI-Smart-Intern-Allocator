@@ -1,6 +1,7 @@
 const Student = require('../models/Student');
 const Internship = require('../models/Internship');
 const Allocation = require('../models/Allocation');
+const mlService = require('./mlService');
 
 /**
  * Weights for the scoring algorithm
@@ -13,14 +14,23 @@ const WEIGHTS = {
     GPA: 0.15           // Academic Performance
 };
 
+// ML Configuration
+const USE_ML_SCORING = process.env.USE_ML_SCORING === 'true' || false;
+const ML_WEIGHT = 0.6; // Weight for ML score
+const RULE_WEIGHT = 0.4; // Weight for rule-based score
+
 class AllocationEngine {
 
     /**
      * Main entry point to run the allocation batch
      * @param {String} batchId - Unique ID for this execution cycle
+     * @param {Object} options - Additional options { useML: boolean }
      */
-    async runBatchAllocation(batchId) {
+    async runBatchAllocation(batchId, options = {}) {
+        const useML = options.useML !== undefined ? options.useML : USE_ML_SCORING;
+        
         console.log(`[Batch: ${batchId}] Starting Allocation Engine...`);
+        console.log(`[Batch: ${batchId}] ML Scoring: ${useML ? 'ENABLED' : 'DISABLED'}`);
 
         // 1. Fetch Candidates & Opportunities
         // BLIND LOGIC: We fetch full objects, but the scoring function 
@@ -40,25 +50,92 @@ class AllocationEngine {
         // 2. Generate Scoring Matrix (All-to-All)
         let potentialMatches = [];
 
+        // Prepare pairs for ML prediction if enabled
+        const mlPairs = [];
+        const mlPairIndices = [];
+
         for (const student of candidates) {
             for (const internship of internships) {
 
                 // Pre-filter: Check hard constraints (e.g. Min GPA)
                 if (student.academic.gpa < internship.minGPA) continue;
 
-                // Calculate Score
-                const analysis = this.calculateScore(student, internship);
+                // Calculate Rule-based Score
+                const ruleAnalysis = this.calculateScore(student, internship);
 
-                if (analysis.totalScore > 0.3) { // Threshold to ignore poor matches
-                    potentialMatches.push({
-                        studentId: student._id,
-                        internshipId: internship._id,
-                        score: analysis.totalScore,
-                        breakdown: analysis.breakdown,
-                        explanation: analysis.explanation, // Pass explanation separately
-                        studentInfo: student,       // optimized for memory later
-                        internshipInfo: internship
-                    });
+                // Store pair for ML prediction
+                if (useML && mlService.isModelTrained) {
+                    mlPairs.push({ student, internship });
+                    mlPairIndices.push({ student, internship, ruleAnalysis });
+                } else {
+                    // Use rule-based score only
+                    if (ruleAnalysis.totalScore > 0.3) {
+                        potentialMatches.push({
+                            studentId: student._id,
+                            internshipId: internship._id,
+                            score: ruleAnalysis.totalScore,
+                            breakdown: ruleAnalysis.breakdown,
+                            explanation: ruleAnalysis.explanation,
+                            studentInfo: student,
+                            internshipInfo: internship
+                        });
+                    }
+                }
+            }
+        }
+
+        // Get ML predictions if enabled
+        if (useML && mlService.isModelTrained && mlPairs.length > 0) {
+            console.log(`[Batch: ${batchId}] Generating ML predictions for ${mlPairs.length} pairs...`);
+            
+            try {
+                const mlPredictions = await mlService.predict(mlPairs, true);
+
+                // Combine ML and rule-based scores
+                for (let i = 0; i < mlPairIndices.length; i++) {
+                    const { student, internship, ruleAnalysis } = mlPairIndices[i];
+                    const mlPrediction = mlPredictions[i];
+
+                    // Hybrid score: weighted average of ML and rule-based
+                    const hybridScore = (mlPrediction.score * ML_WEIGHT) + 
+                                      (ruleAnalysis.totalScore * RULE_WEIGHT);
+
+                    if (hybridScore > 0.3) {
+                        potentialMatches.push({
+                            studentId: student._id,
+                            internshipId: internship._id,
+                            score: hybridScore,
+                            mlScore: mlPrediction.score,
+                            mlConfidence: mlPrediction.confidence,
+                            ruleScore: ruleAnalysis.totalScore,
+                            breakdown: {
+                                ...ruleAnalysis.breakdown,
+                                mlPrediction: parseFloat(mlPrediction.score.toFixed(2)),
+                                mlConfidence: parseFloat(mlPrediction.confidence.toFixed(2))
+                            },
+                            explanation: `ML: ${Math.round(mlPrediction.score * 100)}% (${Math.round(mlPrediction.confidence * 100)}% conf), ${ruleAnalysis.explanation}`,
+                            studentInfo: student,
+                            internshipInfo: internship
+                        });
+                    }
+                }
+
+                console.log(`[Batch: ${batchId}] ML predictions integrated successfully`);
+            } catch (error) {
+                console.error(`[Batch: ${batchId}] ML prediction failed, falling back to rule-based:`, error.message);
+                // Fall back to rule-based scores
+                for (const { student, internship, ruleAnalysis } of mlPairIndices) {
+                    if (ruleAnalysis.totalScore > 0.3) {
+                        potentialMatches.push({
+                            studentId: student._id,
+                            internshipId: internship._id,
+                            score: ruleAnalysis.totalScore,
+                            breakdown: ruleAnalysis.breakdown,
+                            explanation: ruleAnalysis.explanation,
+                            studentInfo: student,
+                            internshipInfo: internship
+                        });
+                    }
                 }
             }
         }

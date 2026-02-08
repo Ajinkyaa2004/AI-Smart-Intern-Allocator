@@ -6,8 +6,9 @@ const Allocation = require('../models/Allocation');
  */
 const runAllocation = async (req, res) => {
     try {
+        const { useML } = req.body; // Optional: enable ML scoring
         const batchId = `MATCH-${Date.now()}`; // Unique Batch ID
-        const results = await allocationEngine.runBatchAllocation(batchId);
+        const results = await allocationEngine.runBatchAllocation(batchId, { useML });
 
         res.json({
             success: true,
