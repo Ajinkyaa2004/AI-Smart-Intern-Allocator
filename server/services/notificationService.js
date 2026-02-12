@@ -30,24 +30,15 @@ class NotificationService {
                     }
                 } catch (emailError) {
                     console.error('[Notification] Email send failed:', emailError.message);
-                    // Don't throw - in-app notification already created, additionalData = {}) {
-        return this.createNotification({
-            recipientId: studentUserId,
-            recipientRole: 'STUDENT',
-            type: 'ALLOCATION_PROPOSED',
-            title: '🎉 New Internship Match Found!',
-            message: `You've been matched with ${internshipTitle} at ${orgName}. Match score: ${Math.round(matchScore * 100)}%`,
-            link: '/student/matches',
-            priority: 'HIGH',
-            sendEmail: true,
-            emailData: {
-                studentName: additionalData.studentName,
-                internshipTitle,
-                orgName,
-                matchScore,
-                location: additionalData.location,
-                startDate: additionalData.startDate
+                    // Don't throw - in-app notification already created
+                }
             }
+
+            return notification;
+        } catch (error) {
+            console.error('[Notification] Failed to create notification:', error);
+            throw error;
+        }
     }
 
     /**
@@ -75,22 +66,25 @@ class NotificationService {
 
     /**
      * Notify student about new allocation
-     */, orgName, studentName) {
+     */
+    async notifyAllocationProposed(studentUserId, internshipTitle, orgName, matchScore, additionalData = {}) {
         return this.createNotification({
             recipientId: studentUserId,
             recipientRole: 'STUDENT',
-            type: 'RATING_REQUEST',
-            title: '⭐ Rate Your Internship Experience',
-            message: `Please share your feedback about ${internshipTitle}. Your input helps improve future allocations!`,
-            link: '/student/feedback',
-            priority: 'MEDIUM',
+            type: 'ALLOCATION_PROPOSED',
+            title: '🎉 New Internship Match Found!',
+            message: `You've been matched with ${internshipTitle} at ${orgName}. Match score: ${Math.round(matchScore * 100)}%`,
+            link: '/student/matches',
+            priority: 'HIGH',
             sendEmail: true,
             emailData: {
-                studentName,
+                studentName: additionalData.studentName,
                 internshipTitle,
-                orgName
-            }tches',
-            priority: 'HIGH'
+                orgName,
+                matchScore,
+                location: additionalData.location,
+                startDate: additionalData.startDate
+            }
         });
     }
 

@@ -37,6 +37,7 @@ app.prepare().then(() => {
     server.use('/api/v1/ratings', require('./server/routes/ratingRoutes'));
     server.use('/api/v1/notifications', require('./server/routes/notificationRoutes'));
     server.use('/api/v1/ml', require('./server/routes/mlRoutes'));
+    server.use('/api/v1/chatbot', require('./server/routes/chatbotRoutes'));
 
     // Custom API Routes (Express)
     server.get('/api/health', (req, res) => {

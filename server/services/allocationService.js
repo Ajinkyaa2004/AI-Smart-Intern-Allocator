@@ -2,13 +2,14 @@ const Student = require('../models/Student');
 const Internship = require('../models/Internship');
 const Allocation = require('../models/Allocation');
 const mlService = require('./mlService');
+const { calculateSkillMatchTFIDF, precomputeIDFMap } = require('../utils/skillMatchingAlgorithms');
 
 /**
  * Weights for the scoring algorithm
  * Total should strictly sum to 1.0 for explainability.
  */
 const WEIGHTS = {
-    SKILLS: 0.45,       // Competency (Most important)
+    SKILLS: 0.45,       // Competency (Most important) - Now using TF-IDF + Cosine Similarity
     DOMAIN: 0.20,       // Interest/Sector Alignment
     LOCATION: 0.20,     // Logistics
     GPA: 0.15           // Academic Performance
@@ -47,7 +48,11 @@ class AllocationEngine {
 
         console.log(`[Batch: ${batchId}] Found ${candidates.length} candidates and ${internships.length} internships.`);
 
-        // 2. Generate Scoring Matrix (All-to-All)
+        // 2. Precompute IDF map for TF-IDF skill matching (performance optimization)
+        console.log(`[Batch: ${batchId}] Precomputing IDF map for TF-IDF skill matching...`);
+        const idfMap = precomputeIDFMap(candidates, internships);
+
+        // 3. Generate Scoring Matrix (All-to-All)
         let potentialMatches = [];
 
         // Prepare pairs for ML prediction if enabled
@@ -60,8 +65,8 @@ class AllocationEngine {
                 // Pre-filter: Check hard constraints (e.g. Min GPA)
                 if (student.academic.gpa < internship.minGPA) continue;
 
-                // Calculate Rule-based Score
-                const ruleAnalysis = this.calculateScore(student, internship);
+                // Calculate Rule-based Score using TF-IDF + Cosine Similarity
+                const ruleAnalysis = this.calculateScore(student, internship, idfMap);
 
                 // Store pair for ML prediction
                 if (useML && mlService.isModelTrained) {
@@ -228,34 +233,28 @@ class AllocationEngine {
     /**
      * Core Explainable Scoring Logic
      * IMPT: Implements BLIND RESUME logic by ignoring name/gender/college.
+     * NOW USES: TF-IDF + Cosine Similarity for advanced skill matching
      */
-    calculateScore(student, internship) {
+    calculateScore(student, internship, idfMap = null) {
         let skillScore = 0;
+        let skillDetails = null;
         let domainScore = 0;
         let locationScore = 0;
         let gpaScore = 0;
 
-        // A. Skill Matching (Vector-like Overlap)
+        // A. Advanced Skill Matching using TF-IDF + Cosine Similarity
         const required = internship.requiredSkills; // [{ skill: 'Python', weight: 1 }]
-        if (required.length > 0) {
-            let matchedWeight = 0;
-            let totalWeight = 0;
-
-            required.forEach(req => {
-                totalWeight += req.weight || 1;
-                // Fuzzy find skill in student profile
-                const studentSkill = student.skills.find(s =>
-                    s.name.toLowerCase().includes(req.skill.toLowerCase())
-                );
-
-                if (studentSkill) {
-                    // Normalize level (1-5) to 0.2-1.0
-                    const mastery = (studentSkill.level || 1) / 5;
-                    matchedWeight += (req.weight || 1) * mastery;
-                }
-            });
-
-            skillScore = totalWeight === 0 ? 0 : (matchedWeight / totalWeight);
+        if (required && required.length > 0 && student.skills && student.skills.length > 0) {
+            // Use TF-IDF + Cosine Similarity algorithm
+            const matchResult = calculateSkillMatchTFIDF(student.skills, required, idfMap);
+            skillScore = matchResult.score;
+            skillDetails = {
+                cosineSimilarity: matchResult.cosineSimilarity,
+                exactMatchRatio: matchResult.exactMatchRatio,
+                avgProficiency: matchResult.avgProficiency,
+                matchedSkills: matchResult.matchedSkills,
+                missingSkills: matchResult.missingSkills
+            };
         }
 
         // B. Domain/Sector Matching (Organization Sector vs Student Preferences)
@@ -293,9 +292,18 @@ class AllocationEngine {
                 skillMatch: parseFloat(skillScore.toFixed(2)),
                 domainMatch: parseFloat(domainScore.toFixed(2)),
                 locationMatch: parseFloat(locationScore.toFixed(2)),
-                gpaContribution: parseFloat(gpaScore.toFixed(2))
+                gpaContribution: parseFloat(gpaScore.toFixed(2)),
+                ...(skillDetails && {
+                    skillDetails: {
+                        cosineSimilarity: skillDetails.cosineSimilarity,
+                        exactMatchRatio: skillDetails.exactMatchRatio,
+                        avgProficiency: skillDetails.avgProficiency,
+                        matchedCount: skillDetails.matchedSkills.length,
+                        missingCount: skillDetails.missingSkills.length
+                    }
+                })
             },
-            explanation: `Skills: ${Math.round(skillScore * 100)}%, Domain: ${domainScore === 1 ? 'Matched' : 'No'}, Loc: ${locationScore === 1 ? 'Yes' : 'No'}`
+            explanation: `Skills: ${Math.round(skillScore * 100)}% (TF-IDF), Domain: ${domainScore === 1 ? 'Matched' : 'No'}, Loc: ${locationScore === 1 ? 'Yes' : 'No'}${skillDetails ? `, Matched: ${skillDetails.matchedSkills.length}/${skillDetails.matchedSkills.length + skillDetails.missingSkills.length} skills` : ''}`
         };
     }
 }
