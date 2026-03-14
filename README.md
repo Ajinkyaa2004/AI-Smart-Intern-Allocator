@@ -1036,5 +1036,5 @@ curl -X GET http://localhost:3000/api/v1/ml/status \
 
 ---
 
-**Built with ❤️ for fair and transparent internship allocation**
+**Built by Shrujanya M & Ajinkya Dhumal for fair and transparent internship allocation**
 
