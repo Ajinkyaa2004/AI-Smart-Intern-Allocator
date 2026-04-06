@@ -9,7 +9,7 @@ export default function Home() {
       <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex mb-12">
         <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-200 bg-white/50 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-white/60 lg:p-4">
           Powered by&nbsp;
-          <code className="font-mono font-bold text-primary">Node + Express + MongoDB</code>
+          <code className="font-mono font-bold text-primary">Next.js + Static Mock API</code>
         </p>
       </div>
 
@@ -33,7 +33,7 @@ export default function Home() {
         </div>
 
         {/* Decorative background blob */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-primary/20 blur-[100px] rounded-full -z-10 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-75 bg-primary/20 blur-[100px] rounded-full -z-10 pointer-events-none" />
       </div>
 
       {/* Feature Grid */}
@@ -42,7 +42,7 @@ export default function Home() {
           { title: "Next.js", desc: "App Router & Latest Features", icon: <Layers className="w-8 h-8 mb-4 text-primary" /> },
           { title: "Tailwind", desc: "Utility-first CSS Framework", icon: <Code2 className="w-8 h-8 mb-4 text-primary" /> },
           { title: "Express", desc: "Custom Node.js Server", icon: <Server className="w-8 h-8 mb-4 text-primary" /> },
-          { title: "MongoDB", desc: "Mongoose ODM Integration", icon: <Database className="w-8 h-8 mb-4 text-primary" /> }
+          { title: "Static Mock API", desc: "Vercel-ready route handlers", icon: <Database className="w-8 h-8 mb-4 text-primary" /> }
         ].map((item, i) => (
           <div key={i} className="group rounded-2xl border border-gray-100 bg-white px-6 py-8 transition-all hover:border-primary/20 hover:shadow-lg hover:-translate-y-1">
             {item.icon}

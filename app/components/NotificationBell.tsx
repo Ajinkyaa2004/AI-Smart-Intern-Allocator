@@ -43,7 +43,7 @@ export default function NotificationBell() {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/v1/notifications', {
+      const response = await fetch('/api/v1/notifications', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -59,7 +59,7 @@ export default function NotificationBell() {
   const markAsRead = async (id: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/v1/notifications/${id}/read`, {
+      const response = await fetch(`/api/v1/notifications/${id}/read`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -75,7 +75,7 @@ export default function NotificationBell() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/v1/notifications/read-all', {
+      const response = await fetch('/api/v1/notifications/read-all', {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -92,7 +92,7 @@ export default function NotificationBell() {
     e.stopPropagation();
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/v1/notifications/${id}`, {
+      const response = await fetch(`/api/v1/notifications/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });

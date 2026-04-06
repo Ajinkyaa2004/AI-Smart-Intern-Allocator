@@ -6,9 +6,10 @@ const generateToken = require('../utils/generateToken');
 // @access  Public
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: normalizedEmail });
 
         if (user && (await user.matchPassword(password))) {
             res.json({
@@ -31,16 +32,17 @@ const loginUser = async (req, res) => {
 // @access  Public
 const registerUser = async (req, res) => {
     const { email, password, role } = req.body;
+    const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
     try {
-        const userExists = await User.findOne({ email });
+        const userExists = await User.findOne({ email: normalizedEmail });
 
         if (userExists) {
             return res.status(400).json({ message: 'User already exists' });
         }
 
         const user = await User.create({
-            email,
+            email: normalizedEmail,
             password,
             role
         });

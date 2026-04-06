@@ -55,7 +55,7 @@ export default function RateCandidatesPage() {
     try {
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:3000/api/v1/ratings/pending/org`, {
+      const response = await fetch(`/api/v1/ratings/pending/org`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -82,7 +82,7 @@ export default function RateCandidatesPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/v1/ratings/student/${allocationId}`, {
+      const response = await fetch(`/api/v1/ratings/student/${allocationId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -172,7 +172,10 @@ export default function RateCandidatesPage() {
         <div className="space-y-6">
           {allocations.map((allocation) => (
             <div key={allocation._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b border-gray-200">
+              <div
+                className="p-6 border-b border-gray-200"
+                style={{ backgroundImage: 'linear-gradient(to right, #f5f3ff, #fdf2f8)' }}
+              >
                 <h3 className="text-xl font-bold text-gray-900 mb-1">
                   {allocation.student.personal.name}
                 </h3>

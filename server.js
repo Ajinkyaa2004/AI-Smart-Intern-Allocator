@@ -10,18 +10,34 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const port = process.env.PORT || 3000;
+const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/internmatch_ai';
 
-app.prepare().then(() => {
+mongoose.set('bufferCommands', false);
+
+app.prepare().then(async () => {
     const server = express();
 
     // MongoDB Connection
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/next-express-app';
-
-    mongoose.connect(MONGODB_URI)
-        .then(() => console.log('Connected to MongoDB'))
-        .catch(err => {
-            console.error('MongoDB connection error:', err);
+    try {
+        await mongoose.connect(MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000,
+            connectTimeoutMS: 5000,
         });
+        console.log('Connected to MongoDB');
+    } catch (err) {
+        console.error('MongoDB connection error:', err.message);
+        process.exit(1);
+    }
+
+    server.use('/api', (req, res, next) => {
+        if (mongoose.connection.readyState !== 1) {
+            return res.status(503).json({
+                message: 'Database connection is not ready. Please try again in a moment.',
+            });
+        }
+
+        next();
+    });
 
     // Middleware
     server.use(express.json());

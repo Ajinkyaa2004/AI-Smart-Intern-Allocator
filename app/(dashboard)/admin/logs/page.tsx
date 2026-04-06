@@ -56,7 +56,7 @@ export default function AdminLogs() {
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-3xl font-bold text-foreground">Transparency Logs</h1>
                 <a
-                    href="http://localhost:3000/api/v1/allocation/export"
+                    href="/api/v1/allocation/export"
                     target="_blank"
                     className="bg-white hover:bg-gray-50 text-foreground border border-gray-200 px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
                 >

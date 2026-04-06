@@ -45,7 +45,7 @@ export default function ResumeUpload() {
       formData.append('resume', file);
 
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/v1/resume/upload', {
+      const response = await fetch('/api/v1/resume/upload', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -78,7 +78,7 @@ export default function ResumeUpload() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/v1/resume/delete', {
+      const response = await fetch('/api/v1/resume/delete', {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ export default function ResumeUpload() {
 
   const handleDownload = () => {
     const token = localStorage.getItem('token');
-    window.open(`http://localhost:3000/api/v1/resume/download?token=${token}`, '_blank');
+    window.open(`/api/v1/resume/download?token=${token}`, '_blank');
   };
 
   return (

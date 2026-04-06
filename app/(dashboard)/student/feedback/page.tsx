@@ -51,7 +51,7 @@ export default function FeedbackPage() {
       const token = localStorage.getItem('token');
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
       
-      const response = await fetch(`http://localhost:3000/api/v1/ratings/pending/student`, {
+      const response = await fetch(`/api/v1/ratings/pending/student`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -78,7 +78,7 @@ export default function FeedbackPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/v1/ratings/internship/${allocationId}`, {
+      const response = await fetch(`/api/v1/ratings/internship/${allocationId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
